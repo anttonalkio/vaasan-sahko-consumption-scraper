@@ -28,13 +28,13 @@ class InfluxDbPipeline:
         self.client = InfluxDBClient(url=self.url, token=self.token, org=self.org)
         query_api = self.client.query_api()
 
-        tables = query_api.query(f'from(bucket: "{self.bucket}") |> range(start: -7d) |> filter(fn: (r) => r["_measurement"] == "consumption") |> max(column: "_time")')
+        tables = query_api.query(f'from(bucket: "{self.bucket}") |> range(start: -30d) |> filter(fn: (r) => r["_measurement"] == "consumption") |> max(column: "_time")')
         if tables and tables[0].records:
             # if so, set delta_start to the value of the first record's _time field
             self.delta_start = tables[0].records[0].values['_time']
             spider.logger.info(f'Latest timestamp found from InfluxDB: {self.delta_start}')
         else:
-            spider.logger.info(f'No records found from InfluxDB within 7 days, using default value for delta_start: {self.delta_start}')
+            spider.logger.info(f'No records found from InfluxDB within 30 days, using default value for delta_start: {self.delta_start}')
 
     def process_item(self, item, spider):
         if item['ts'] >= self.delta_start:
